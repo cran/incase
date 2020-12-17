@@ -1,6 +1,8 @@
 yn <- c(NA, NA, "fizz", NA, "buzz", "fizz", NA, NA, "fizz", NA)
 yp <- c(1, 2, "fizz", 4, "buzz", "fizz", 7, 8, "fizz", 10)
-yd <- c("bam", "bam", "fizz", "bam", "buzz", "fizz", "bam", "bam", "fizz", "bam")
+yd <- c(
+  "bam", "bam", "fizz", "bam", "buzz", "fizz", "bam", "bam", "fizz", "bam"
+)
 
 test_that("unpiped unpreserved switch_case()", {
   x <- switch_case(
@@ -124,4 +126,24 @@ test_that("preserve and default", {
   expect_warning(
     switch_case(1:10, 5 ~ "buzz", preserve = TRUE, default = "bam")
   )
+})
+
+test_that("fn_switch_case()", {
+  data <- c(1, 2, 999, 888, 777)
+
+  expect_equal(
+    fn_switch_case(
+      data,
+      function(x) paste(rep(x, 3), collapse = ""),
+      7 ~ "Not asked",
+      8 ~ "Refused",
+      9 ~ "Missing",
+      preserve = TRUE
+    ),
+    c("1", "2", "Missing", "Refused", "Not asked")
+  )
+})
+
+test_that("fn_switch_case() errors", {
+  expect_error(fn_switch_case(1:10, function(x) x + 5))
 })

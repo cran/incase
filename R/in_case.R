@@ -36,7 +36,11 @@
 #'
 #' @seealso [if_case()], a pipeable alternative to [dplyr::if_else()]
 #'
-#'   [switch_case()], a reimplementation of [switch()]
+#'   [switch_case()] a simpler alternative for when each case involves
+#'   [`==`] or [`%in%`]
+#'
+#'   [fn_case()], a simpler alternative for when each case uses the
+#'   same function
 #'
 #'   [dplyr::case_when()], from which this function is derived
 #'
@@ -85,20 +89,25 @@ in_case <- function(..., preserve = FALSE, default = NA) {
   query       <- vector("list", n)
   value       <- vector("list", n)
   default_env <- rlang::caller_env()
-  quos_pairs  <- mapply(
-    validate_formula, fs, seq_along(fs),
-    MoreArgs = list(default_env = default_env, dots_env = rlang::current_env())
+
+  quos_pairs  <- Map(
+    function(x, i) {
+      validate_formula(
+        x, i, default_env = default_env, dots_env = rlang::current_env()
+      )
+    },
+    fs, seq_along(fs)
   )
 
   for (i in seq_len(n)) {
-    pair       <- quos_pairs[, i]
-    query[[i]] <- rlang::eval_tidy(pair$lhs, env = default_env)
-    value[[i]] <- rlang::eval_tidy(pair$rhs, env = default_env)
+    pair       <- quos_pairs[[i]]
+    query[[i]] <- rlang::eval_tidy(pair[["lhs"]], env = default_env)
+    value[[i]] <- rlang::eval_tidy(pair[["rhs"]], env = default_env)
 
     if (!is.logical(query[[i]])) {
       glubort(
         "Each formula's left hand side must be a logical vector:",
-        cross_bullet(), code(rlang::as_label(pair$lhs)),
+        cross_bullet(), code(rlang::as_label(pair[["lhs"]])),
         "is not a logical vector."
       )
     }
