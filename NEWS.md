@@ -1,3 +1,25 @@
+# incase 0.3.0
+
+## New features
+* Added `*_case_fct()` family of functions
+  - These work the same as their `*_case()` equivalents, but return factors
+  - Factor levels are determined by the order of case statements.
+  - `in_case_fct(x < 10 ~ "Low", x < 20 ~ "Medium", default = "High")` returns a factor with levels `"Low"`, `"Medium"`, and `"High"`.
+  
+* Added `*_case_list()` family
+  - These work the same as their `*_case()` equivalents, but return lists
+  - This allows the functions to return complex data types that would otherwise
+    be broken by automatic type conversion.
+    
+* Implemented lazy-ish evaluation of outputs.
+  - If the LHS of a formula is never true, the RHS is not evaluated.
+    - However, the RHS is still evaluated for all inputs if any input is TRUE.
+  - If `condition` in `if_case()` never takes one of the three logical values,
+  the corresponding output is not evaluated.
+  
+## Bug fixes
+* `if_case()` no longer produces an error if `condition` is only `NA`.
+
 # incase 0.2.1
 
 * Fixed NOTE by removing unnecessary import of `stats`.

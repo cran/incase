@@ -6,12 +6,12 @@
 <!-- badges: start -->
 
 [![](https://www.r-pkg.org/badges/version/incase?color=brightgreen)](https://cran.r-project.org/package=incase)
-[![](https://img.shields.io/badge/lifecycle-maturing-blue.svg)](https://www.tidyverse.org/lifecycle/#maturing)
+[![](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://lifecycle.r-lib.org/articles/stages.html#stable)
 [![License:
 MIT](https://img.shields.io/badge/license-MIT-blueviolet.svg)](https://cran.r-project.org/web/licenses/MIT)
 [![R build
 status](https://github.com/rossellhayes/incase/workflows/R-CMD-check/badge.svg)](https://github.com/rossellhayes/incase/actions)
-[![](https://codecov.io/gh/rossellhayes/incase/branch/master/graph/badge.svg)](https://codecov.io/gh/rossellhayes/incase)
+[![](https://codecov.io/gh/rossellhayes/incase/branch/main/graph/badge.svg)](https://codecov.io/gh/rossellhayes/incase)
 [![CodeFactor](https://www.codefactor.io/repository/github/rossellhayes/incase/badge)](https://www.codefactor.io/repository/github/rossellhayes/incase)
 [![Dependencies](https://tinyverse.netlify.com/badge/incase)](https://cran.r-project.org/package=incase)
 <!-- badges: end -->
@@ -34,8 +34,8 @@ or the development version from
 [GitHub](https://github.com/rossellhayes/incase) with:
 
 ``` r
-# install.packages("remotes")
-remotes::install_github("rossellhayes/incase")
+# install.packages("pak")
+pak::pkg_install("rossellhayes/incase")
 ```
 
 ## Usage
@@ -141,20 +141,8 @@ recoding discrete values.
 
 ``` r
 parties
-#>  [1] "G" "R" "G" "D" "I" "I" "R" "R" "I" NA  "I" "L" "L" "I" "L" "R" "I" "R" "R"
-#> [20] "D"
-
-parties %>% 
-  in_case(
-    . == "D"           ~ "Democratic",
-    . == "R"           ~ "Republican",
-    . %in% c("G", "L") ~ "Other",
-    . %in% c("I", NA)  ~ "Independent" 
-  )
-#>  [1] "Other"       "Republican"  "Other"       "Democratic"  "Independent"
-#>  [6] "Independent" "Republican"  "Republican"  "Independent" "Independent"
-#> [11] "Independent" "Other"       "Other"       "Independent" "Other"      
-#> [16] "Republican"  "Independent" "Republican"  "Republican"  "Democratic"
+#>  [1] "I" "I" "I" NA  NA  "L" "D" "R" "I" NA  "I" "G" "I" "R" "D" "L" "L" "R" "D"
+#> [20] "I"
 
 parties %>%
   switch_case(
@@ -163,10 +151,10 @@ parties %>%
     c("G", "L") ~ "Other",
     c("I", NA)  ~ "Independent"
   )
-#>  [1] "Other"       "Republican"  "Other"       "Democrat"    "Independent"
-#>  [6] "Independent" "Republican"  "Republican"  "Independent" "Independent"
-#> [11] "Independent" "Other"       "Other"       "Independent" "Other"      
-#> [16] "Republican"  "Independent" "Republican"  "Republican"  "Democrat"
+#>  [1] "Independent" "Independent" "Independent" "Independent" "Independent"
+#>  [6] "Other"       "Democrat"    "Republican"  "Independent" "Independent"
+#> [11] "Independent" "Other"       "Independent" "Republican"  "Democrat"   
+#> [16] "Other"       "Other"       "Republican"  "Democrat"    "Independent"
 ```
 
 `grep_case()` allows you to recode values with pattern matching.
@@ -190,13 +178,48 @@ grep_case(
 #> [6] "Belgium"     "Luxembourg"  "Italy"
 ```
 
------
+#### Easily recode to (ordered) factor
 
-Hex sticker fonts are [Source Sans
-Pro](https://github.com/adobe-fonts/source-sans-pro) by
-[Adobe](https://www.adobe.com) and
-[Hasklig](https://github.com/i-tu/Hasklig) by [Ian
-Tuomi](https://github.com/i-tu).
+When you need an ordered factor, the `*_fct()` family of functions lets
+you save a step by using the order of your cases as the order of your
+factor levels. Use `ordered = TRUE` to create an ordered factor and
+`ordered = FALSE` to make a regular-old factor.
+
+``` r
+data <- runif(10, 0, 10)
+data
+#>  [1] 9.283039 7.851878 7.230907 1.880231 6.942045 7.995043 1.470314 8.706706
+#>  [9] 2.943369 4.361939
+
+data %>% 
+  in_case_fct(
+    . < 3   ~ "Low",
+    . < 7   ~ "Medium",
+    default = "High",
+    ordered = TRUE
+  )
+#>  [1] High   High   High   Low    Medium High   Low    High   Low    Medium
+#> Levels: Low < Medium < High
+
+parties %>%
+  switch_case_fct(
+    "D"         ~ "Democrat",
+    "R"         ~ "Republican",
+    c("G", "L") ~ "Other",
+    c("I", NA)  ~ "Independent"
+  )
+#>  [1] Independent Independent Independent Independent Independent Other      
+#>  [7] Democrat    Republican  Independent Independent Independent Other      
+#> [13] Independent Republican  Democrat    Other       Other       Republican 
+#> [19] Democrat    Independent
+#> Levels: Democrat Republican Other Independent
+```
+
+------------------------------------------------------------------------
+
+Hex sticker fonts are [Source Sans by
+Adobe](https://github.com/adobe-fonts/source-sans) and [Hasklig by Ian
+Tuomi](https://github.com/i-tu/Hasklig).
 
 Please note that **incase** is released with a [Contributor Code of
 Conduct](https://contributor-covenant.org/version/2/0/CODE_OF_CONDUCT.html).

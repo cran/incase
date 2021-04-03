@@ -105,13 +105,14 @@ fn_switch_case(
 )
 }
 \seealso{
+\code{\link[=switch_case_fct]{switch_case_fct()}} and \code{\link[=fn_switch_case_fct]{fn_switch_case_fct()}} to return a factor
+and \code{\link[=switch_case_list]{switch_case_list()}} and \code{\link[=fn_switch_case_list]{fn_switch_case_list()}} to return a list
+
 \code{\link[=grep_case]{grep_case()}} to recode values with string pattern matching
 
 \code{\link[=fn_case]{fn_case()}}, which applies a function to both \code{x} and each formula's LHS
 
 \code{\link[=in_case]{in_case()}}, a pipeable alternative to \code{\link[dplyr:case_when]{dplyr::case_when()}}
 
-\code{\link[=if_case]{if_case()}}, a pipeable alternative to \code{\link[dplyr:if_else]{dplyr::if_else()}}
-
-\code{\link[=switch]{switch()}}, which inspired this function
+\code{\link[=switch]{switch()}} and \code{\link{\%in\%}}, which inspired this function
 }

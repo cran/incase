@@ -28,71 +28,35 @@
 #'   or output vectors.
 #'   Inconsistent lengths will generate an error.
 #'
-#' @seealso [fn_switch_case()], which applies a function to each formula's LHS,
+#' @seealso [fn_case_fct()] to return a factor and
+#'   [fn_case_list()] to return a list
+#'
+#'   [fn_switch_case()], which applies a function to each formula's LHS,
 #'   but not `x`
 #'
 #'   [switch_case()], a simpler alternative for exact matching
 #'
 #'   [grep_case()], a simpler alternative for [regex] pattern matching
 #'
+#'   [in_case()], a pipeable alternative to [dplyr::case_when()]
+#'
 #' @export
 #' @example examples/fn_case.R
 
 fn_case <- function(x, fn, ..., preserve = FALSE, default = NA) {
-  fn    <- rlang::as_function(fn)
-  input <- compact_null(rlang::list2(...))
+  inputs <- fn_case_setup(...)
+
+  replace(
+    inputs$fs, x, default, preserve, fn, inputs$args,
+    default_env = rlang::caller_env(),
+    current_env = rlang::current_env()
+  )
+}
+
+fn_case_setup <- function(...) {
+  input <- compact_list(...)
   fs    <- Filter(rlang::is_formula, input)
   args  <- input[!input %in% fs]
 
-  n <- length(fs)
-  if (n == 0) rlang::abort("No cases provided")
-
-  query       <- vector("list", n)
-  value       <- vector("list", n)
-  default_env <- rlang::caller_env()
-
-  quos_pairs  <- Map(
-    function(x, i) {
-      validate_formula(
-        x, i, default_env = default_env, dots_env = rlang::current_env()
-      )
-    },
-    fs, seq_along(fs)
-  )
-
-  for (i in seq_len(n)) {
-    pair       <- quos_pairs[[i]]
-    value[[i]] <- rlang::eval_tidy(pair[["rhs"]], env = default_env)
-
-    query[[i]] <- rlang::eval_tidy(pair[["lhs"]], env = default_env)
-    query[[i]] <- do.call(fn, c(list(x, query[[i]]), args))
-
-    if (!is.logical(query[[i]])) {
-      glubort(
-        "Each formula's left hand side must evaluate to a logical vector:",
-        cross_bullet(), code(rlang::as_label(pair[["lhs"]])),
-        "does not evaluate to a logical vector."
-      )
-    }
-  }
-
-  if (preserve) {
-    warn_if_default(default)
-    query[[n + 1]] <- TRUE
-    value[[n + 1]] <- x
-  }
-
-  class      <- class(c(value, recursive = TRUE))
-  value      <- lapply(value, `class<-`, class)
-  m          <- validate_case_when_length(query, value, fs)
-  out        <- rep_len(default, m)
-  class(out) <- class
-  replaced   <- rep(FALSE, m)
-
-  for (i in seq_len(length(query))) {
-    out      <- replace_with(out, query[[i]] & !replaced, value[[i]])
-    replaced <- replaced | (query[[i]] & !is.na(query[[i]]))
-  }
-
-  out
+  list(fs = fs, args = args)
 }

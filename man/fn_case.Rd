@@ -72,6 +72,17 @@ countries <- c(
 
 fn_case(
   countries,
+  fn = function(x, pattern, ...) {grepl(pattern, x, ...)},
+  "Deutschland" ~ "Germany",
+  "Belgi(qu)?e" ~ "Belgium",
+  "Nederland"   ~ "Netherlands",
+  "Italia"      ~ "Italy",
+  preserve      = TRUE,
+  ignore.case   = TRUE
+)
+
+fn_case(
+  countries,
   fn = stringi::stri_detect_regex,
   "Deutschland"    ~ "Germany",
   "Belgi(qu)?e"    ~ "Belgium",
@@ -112,12 +123,42 @@ minutes \%>\%
     "o'clock" ~ paste(hours, .),
     default   = paste(., hours)
   )
+
+# Replicate vctrs::vec_ptype_abbr() (used for tibble column labels)
+# Based on a contribution by Patrice Kiener
+in_herits <- function(x) {
+  fn_case(
+    x, inherits,
+    "factor"     ~ "fct",
+    "character"  ~ "chr",
+    "numeric"    ~ "dbl",
+    "integer"    ~ "int",
+    "logical"    ~ "lgl",
+    "complex"    ~ "cpl",
+    "raw"        ~ "raw",
+    "matrix"     ~ "mat",
+    "array"      ~ "arr",
+    "data.frame" ~ "df",
+    "list"       ~ "lst",
+    "function"   ~ "fn",
+    default      = class(x)[[1]]
+  )
+}
+
+in_herits(1:3)
+in_herits(letters[1:3])
+in_herits(fn_case)
 }
 \seealso{
+\code{\link[=fn_case_fct]{fn_case_fct()}} to return a factor and
+\code{\link[=fn_case_list]{fn_case_list()}} to return a list
+
 \code{\link[=fn_switch_case]{fn_switch_case()}}, which applies a function to each formula's LHS,
 but not \code{x}
 
 \code{\link[=switch_case]{switch_case()}}, a simpler alternative for exact matching
 
 \code{\link[=grep_case]{grep_case()}}, a simpler alternative for \link{regex} pattern matching
+
+\code{\link[=in_case]{in_case()}}, a pipeable alternative to \code{\link[dplyr:case_when]{dplyr::case_when()}}
 }

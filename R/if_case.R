@@ -26,6 +26,7 @@
 #'
 #'   [dplyr::if_else()], from which this function is derived
 #'
+#' @importFrom rlang %||%
 #' @export
 #'
 #' @example examples/if_case.R
@@ -33,7 +34,7 @@
 if_case <- function(condition, true, false, missing = NA, ...) {
   ellipsis <- list(...)
 
-  if (try(sys.call()[[2]] == ".", silent = TRUE)) {
+  if (try(identical(sys.call()[[2]], rlang::sym(".")), silent = TRUE)) {
     unspecified <- setdiff(names(formals()), names(sys.call()))
     ellipsis    <- list(...)
 
@@ -55,19 +56,38 @@ if_case <- function(condition, true, false, missing = NA, ...) {
   }
 
   if (length(ellipsis)) {
-    glubort(
-      "Arguments must not be passed to", code("..."), "in", code("if_case()"),
-      cross_bullet(), plu::stick(plu::more(code(ellipsis), type = "argument")),
-      plu::ral("was", ellipsis), "passed to", code("...")
+    abort_msg(
+      paste(
+        "Arguments must not be passed to", code("..."), "in", code("if_case()")
+      ),
+      x = paste(
+        plu::stick(plu::more(code(ellipsis), type = "argument")),
+        plu::ral("was", ellipsis), "passed to", code("...")
+      )
     )
   }
 
   if (!is.logical(condition)) {
-    glubort(
-      code("condition"), "must be a logical vector, not",
-      code(paste(class(condition), collapse = "/"))
+    abort_msg(
+      paste(
+        code("condition"), "must be a logical vector, not",
+        code(paste(class(condition), collapse = "/"))
+      )
     )
   }
+
+  # Implement lazy-ish evaluation of output vectors
+  if (!isTRUE(any(condition)))   {true    <- NULL}
+  if (!isTRUE(any(!condition)))  {false   <- NULL}
+  if (!isTRUE(anyNA(condition))) {missing <- NULL}
+
+  true    <- true    %||% false %||% missing
+  false   <- false   %||% true  %||% missing
+  missing <- missing %||% true  %||% false
+
+  check_condition_lengths(
+    condition, list(true = true, false = false, missing = missing)
+  )
 
   if (is.atomic(true) && is.atomic(false) && is.atomic(missing)) {
     common <- c(true, false, missing, recursive = TRUE)
@@ -80,9 +100,30 @@ if_case <- function(condition, true, false, missing = NA, ...) {
   storage.mode(missing) <- storage.mode(common)
 
   out <- true[rep(NA, length(condition))]
-  out <- replace_with(out, condition, true, code("true"))
-  out <- replace_with(out, !condition, false, code("false"))
-  out <- replace_with(out, is.na(condition), missing, code("missing"))
+  out <- replace_with(out, condition,        true,    "true")
+  out <- replace_with(out, !condition,       false,   "false")
+  out <- replace_with(out, is.na(condition), missing, "missing")
 
   out
+}
+
+check_condition_lengths <- function(condition, replacements) {
+  replacement_lengths <- lengths(replacements)
+  problem             <- !replacement_lengths %in% c(0, 1, length(condition))
+
+  if (any(problem)) {
+    msg <- paste0(
+      code(names(replacements[problem])), " is length ",
+      value(replacement_lengths[problem]), "."
+    )
+    names(msg) <- rep("x", length(msg))
+
+    abort_msg(
+      paste0(
+        "Replacement vectors muct be the same length as ", code("conditon"),
+        " (", value(length(condition)), ") or length ", value(1), "."
+      ),
+      msg
+    )
+  }
 }

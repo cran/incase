@@ -34,13 +34,16 @@
 #'   or output vectors.
 #'   Inconsistent lengths will generate an error.
 #'
-#' @seealso [if_case()], a pipeable alternative to [dplyr::if_else()]
+#' @seealso [in_case_fct()] to return a factor and
+#'   [in_case_list()] to return a list
 #'
 #'   [switch_case()] a simpler alternative for when each case involves
 #'   [`==`] or [`%in%`]
 #'
 #'   [fn_case()], a simpler alternative for when each case uses the
 #'   same function
+#'
+#'   [if_case()], a pipeable alternative to [dplyr::if_else()]
 #'
 #'   [dplyr::case_when()], from which this function is derived
 #'
@@ -49,81 +52,60 @@
 #' @example examples/in_case.R
 
 in_case <- function(..., preserve = FALSE, default = NA) {
-  ellipsis <- compact_null(rlang::list2(...))
+  inputs <- in_case_setup(..., preserve = preserve, fn = "in_case()")
+
+  replace(
+    fs          = inputs$fs,
+    x           = inputs$x,
+    default     = default,
+    preserve    = preserve,
+    default_env = rlang::caller_env(),
+    current_env = rlang::current_env()
+  )
+}
+
+in_case_setup <- function(..., preserve, fn) {
+  ellipsis <- compact_list(...)
 
   if (!rlang::is_formula(ellipsis[[1]])) {
     fs <- ellipsis[-1]
-
-    if (preserve) {
-      warn_if_default(default)
-      default <- ellipsis[[1]]
-    }
+    x  <- ellipsis[[1]]
   } else {
     fs <- ellipsis
-
-    if (preserve) {
-      glubort(
-        code("preserve"), " requires a vector to be piped into ",
-        code("in_case()"), ":", bullet(), " Try using ", code("default"),
-        " instead", .zero = TRUE
-      )
-    }
+    x  <- NULL
+    assert_no_preserve_without_pipe(preserve, fn)
   }
 
-  n <- length(fs)
-  if (n == 0) rlang::abort("No cases provided")
+  assert_two_sided(fs, fn)
 
+  list(fs = fs, x = x)
+}
+
+assert_no_preserve_without_pipe <- function(preserve, fn) {
+  if (preserve) {
+    abort_msg(
+      paste(
+        "A vector must be piped into", code(fn),
+        "to use", code("preserve")
+      ),
+      paste("Try using", code("default"), "instead")
+    )
+  }
+}
+
+assert_two_sided <- function(fs, fn) {
   nfs <- Filter(
     function(fs) !rlang::is_formula(fs, lhs = TRUE) && !rlang::is_quosure(fs),
     fs
   )
 
   if (length(nfs)) {
-    glubort(
-      "Each argument to", code("in_case()"), "must be a two-sided formula:",
-      cross_bullet(), plu::stick(nfs, code, max = 5),
-      plu::ral("is {not} a {two-sided} formula.", nfs)
+    abort_msg(
+      paste("Each argument to", code(fn), "must be a two-sided formula"),
+      x = paste(
+        plu::stick(plu::more(code(nfs), 5, "argument")),
+        plu::ral("is {not} a {two-sided} formula.", nfs)
+      )
     )
   }
-
-  query       <- vector("list", n)
-  value       <- vector("list", n)
-  default_env <- rlang::caller_env()
-
-  quos_pairs  <- Map(
-    function(x, i) {
-      validate_formula(
-        x, i, default_env = default_env, dots_env = rlang::current_env()
-      )
-    },
-    fs, seq_along(fs)
-  )
-
-  for (i in seq_len(n)) {
-    pair       <- quos_pairs[[i]]
-    query[[i]] <- rlang::eval_tidy(pair[["lhs"]], env = default_env)
-    value[[i]] <- rlang::eval_tidy(pair[["rhs"]], env = default_env)
-
-    if (!is.logical(query[[i]])) {
-      glubort(
-        "Each formula's left hand side must be a logical vector:",
-        cross_bullet(), code(rlang::as_label(pair[["lhs"]])),
-        "is not a logical vector."
-      )
-    }
-  }
-
-  class      <- class(c(value, recursive = TRUE))
-  value      <- lapply(value, `class<-`, class)
-  m          <- validate_case_when_length(query, value, fs)
-  out        <- rep_len(default, m)
-  class(out) <- class
-  replaced   <- rep(FALSE, m)
-
-  for (i in seq_len(n)) {
-    out      <- replace_with(out, query[[i]] & !replaced, value[[i]])
-    replaced <- replaced | (query[[i]] & !is.na(query[[i]]))
-  }
-
-  out
 }
