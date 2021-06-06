@@ -1,7 +1,7 @@
-b0be90e0efddb443acc0b4fdc2376a13 *DESCRIPTION
+bf993a65e93f1d3d434655963d1b20a8 *DESCRIPTION
 02e30b71acae5c03bf2a6ac55a234b61 *LICENSE
 17a8ba60e472a09e237bcdbd2b7391de *NAMESPACE
-2e0ae5d504f34a7c185be1a5cf964681 *NEWS.md
+0d590e8f01785089481a5afb88cd748b *NEWS.md
 f7583fd4b7adbe0e17f79d3b08792967 *R/compact_list.R
 85cdc4c378be62febb38a61017a34328 *R/errors.R
 954127f727f11b7d897414b875977172 *R/fn_case.R
@@ -12,14 +12,14 @@ bdfd96dd4d94b05f403835d90383366c *R/in_case.R
 44b407dc50de52c23083fd11312dfb8f *R/in_case_list.R
 413a076bdcbfc39901e07433c6c8e913 *R/incase-package.R
 59c20aff7806abd8f6306001ec23e40f *R/onLoad.R
-f4e712214eb078297b027a49e405a653 *R/replace.R
+4d7905089f2ff33781fddf6f8e6581d7 *R/replace.R
 e6ccd661d2be5071b6b2fd5de336ca27 *R/switch_case.R
 3ae23ff1c90581c3e5651878b3705fff *R/utils-pipe.R
 184e84fcbb267d56d520c5b2f8ce3765 *R/validate_case_length.R
 9d82aed7db4cfbcd2d6f893f8dfd6602 *README.md
 1175620ad9cc6f0e6a0a7193a2b68608 *man/figures/logo.png
 9fb23ebefee6cba1570471db7963a685 *man/figures/logo.pptx
-14c2f2903a4f7fa3adc02bdcdde9eaf1 *man/fn_case.Rd
+5908055f3e9cdab24edf9b8c9e53b64b *man/fn_case.Rd
 6d0cf2012f95d54f9702209ef9ef0a5c *man/grep_case.Rd
 fdf55b5e1b19ecff3a5aef8a8b8decb2 *man/if_case.Rd
 e6391d0b17e306ab67b52bf1b831c8b1 *man/in_case.Rd
@@ -35,4 +35,4 @@ f45ca941d43d687cbc24390a5aae6519 *tests/testthat/test-grep_case.R
 63fde6045909de4ea0f52232bb5d762d *tests/testthat/test-in_case.R
 6ccc5e85e8186f407505e47d442f4cc1 *tests/testthat/test-in_case_fct.R
 6cdf79a5e29717074e13814e1e7c2d94 *tests/testthat/test-in_case_list.R
-ce5eba974cecd13f1ac67b4bc1c3d3ac *tests/testthat/test-switch_case.R
+bafbd8780b2233919bb624dfb7a6be95 *tests/testthat/test-switch_case.R

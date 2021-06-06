@@ -1,3 +1,8 @@
+# incase 0.3.1
+
+* Fixed bug where `*_case()` would return `NULL` if no conditions were `TRUE`.
+* Added `tibble` to suggested packages.
+
 # incase 0.3.0
 
 ## New features
